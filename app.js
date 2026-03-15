@@ -1,70 +1,56 @@
-// Elementleri seçelim
-const fileInput = document.getElementById('fileInput');
-const dropZone = document.getElementById('drop-zone');
-const previewContainer = document.getElementById('preview-container');
-const imgPreview = document.getElementById('imgPreview');
+// app.js - Tam Kod
+const fileInput = document.getElementById('fileInput'); // HTML'indeki dosya inputunun ID'si
 const generateBtn = document.getElementById('generateBtn');
-const modelViewer = document.getElementById('modelViewer');
+const modelViewer = document.querySelector('model-viewer');
 const downloadBtn = document.getElementById('downloadBtn');
 
-// 1. Tıklama ile Dosya Seçme
-dropZone.addEventListener('click', () => fileInput.click());
-
-// 2. Dosya Seçildiğinde Önizleme Göster
-fileInput.addEventListener('change', function() {
-    const file = this.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            imgPreview.src = e.target.result;
-            previewContainer.classList.remove('hidden');
-            dropZone.classList.add('hidden');
-        }
-        reader.readAsDataURL(file);
-    }
-});
-
-// 3. 🧠 Yapay Zeka İşlemini Başlat (Simülasyon)
 generateBtn.addEventListener('click', async () => {
-    if (!fileInput.files[0]) {
-        alert("Lütfen önce bir fotoğraf yükleyin!");
-        return;
-    }
+    const file = fileInput.files[0];
+    if (!file) return alert("Lütfen bir fotoğraf yükleyin!");
 
-    // Butonu devre dışı bırak ve yükleniyor de
-    generateBtn.innerText = "⏳ Yapay Zeka İşliyor...";
+    generateBtn.innerText = "⏳ İşleniyor...";
     generateBtn.disabled = true;
 
     try {
-        // BURASI ÖNEMLİ: Gerçek bir projede burada AI API'sine (Meshy, CSM vb.) fetch isteği atılır.
-        // Şimdilik bir gecikme ekleyerek süreci simüle ediyoruz.
-        console.log("AI API'sine istek gönderiliyor...");
-        
-        await new Promise(resolve => setTimeout(resolve, 3000)); // 3 saniye bekle
+        // TOKEN GÜVENLİĞİ: Eğer bu bir web uygulamasıysa, 
+        // güvenlik için token'ı burada değil, backend'de saklaman gerekir.
+        // Ancak hızlı deneme için aşağıya ekliyoruz:
+        const HF_TOKEN = "Hf_OAiIasPlHBTwZQizYPXjmBeQtcXCIYhTma"; 
+        const API_URL = "https://api-inference.huggingface.co/models/stabilityai/TripoSR";
 
-        // 🧊 Test amaçlı bir 3D model yolu (Kendi .glb dosyanı buraya koyabilirsin)
-        const demoModelUrl = "https://modelviewer.dev/shared-assets/models/Astronaut.glb";
-        
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: {
+                "Authorization": `Bearer ${HF_TOKEN}`,
+                "Content-Type": "application/octet-stream"
+            },
+            body: file
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`API Hatası: ${response.status} - ${errorText}`);
+        }
+
+        const blob = await response.blob();
+        const modelUrl = URL.createObjectURL(blob);
+
         // Modeli görüntüleyiciye aktar
-        modelViewer.src = demoModelUrl;
-        
-        // Başarılı mesajı ve İndirme butonunu aktif et
+        modelViewer.src = modelUrl;
         generateBtn.innerText = "✅ Model Hazır!";
         downloadBtn.disabled = false;
-        
-        console.log("3D Model başarıyla oluşturuldu.");
 
-    } catch (error) {
-        alert("Bir hata oluştu: " + error);
+        downloadBtn.onclick = () => {
+            const a = document.createElement('a');
+            a.href = modelUrl;
+            a.download = 'model.obj';
+            a.click();
+        };
+
+    } catch (e) {
+        console.error(e);
+        alert("Hata oluştu, konsolu (F12) kontrol edin: " + e.message);
         generateBtn.innerText = "🧠 3D Model Oluştur";
         generateBtn.disabled = false;
     }
-});
-
-// 4. ⬇ STL/GLB İndirme Fonksiyonu
-downloadBtn.addEventListener('click', () => {
-    const link = document.createElement('a');
-    link.href = modelViewer.src;
-    link.download = 'ai_model_3d.glb'; // İleride STL'e çevrilebilir
-    link.click();
 });
