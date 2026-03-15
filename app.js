@@ -1,23 +1,36 @@
-// app.js - Tam Kod
-const fileInput = document.getElementById('fileInput'); // HTML'indeki dosya inputunun ID'si
+// HTML elementlerini seçiyoruz
+const fileInput = document.getElementById('fileInput');
 const generateBtn = document.getElementById('generateBtn');
 const modelViewer = document.querySelector('model-viewer');
-const downloadBtn = document.getElementById('downloadBtn');
 
+// 1. Fotoğraf seçildiğinde önizleme yapalım
+fileInput.addEventListener('change', (event) => {
+    const file = event.target.files[0];
+    if (file) {
+        console.log("Dosya seçildi:", file.name);
+    }
+});
+
+// 2. 3D Model Oluşturma Butonu
 generateBtn.addEventListener('click', async () => {
     const file = fileInput.files[0];
-    if (!file) return alert("Lütfen bir fotoğraf yükleyin!");
+    
+    // Hata Kontrolü
+    if (!file) {
+        alert("Lütfen önce bir fotoğraf yükleyin!");
+        return;
+    }
 
-    generateBtn.innerText = "⏳ İşleniyor...";
+    // Butonu güncelle
+    generateBtn.innerText = "⏳ 3D Model Oluşturuluyor...";
     generateBtn.disabled = true;
 
     try {
-        // TOKEN GÜVENLİĞİ: Eğer bu bir web uygulamasıysa, 
-        // güvenlik için token'ı burada değil, backend'de saklaman gerekir.
-        // Ancak hızlı deneme için aşağıya ekliyoruz:
+        // TOKEN GÜVENLİĞİ: Gerçek projede bunu .env veya secret'ta saklamalısın
         const HF_TOKEN = "Hf_OAiIasPlHBTwZQizYPXjmBeQtcXCIYhTma"; 
         const API_URL = "https://api-inference.huggingface.co/models/stabilityai/TripoSR";
 
+        // API'ye fotoğrafı gönderiyoruz
         const response = await fetch(API_URL, {
             method: 'POST',
             headers: {
@@ -28,28 +41,23 @@ generateBtn.addEventListener('click', async () => {
         });
 
         if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`API Hatası: ${response.status} - ${errorText}`);
+            throw new Error(`API Hatası (${response.status}): Model oluşturulamadı.`);
         }
 
+        // Gelen veriyi 3D modele çevir
         const blob = await response.blob();
         const modelUrl = URL.createObjectURL(blob);
 
-        // Modeli görüntüleyiciye aktar
+        // ModelViewer'a yükle
         modelViewer.src = modelUrl;
+        
+        // Kullanıcıya bilgi ver
         generateBtn.innerText = "✅ Model Hazır!";
-        downloadBtn.disabled = false;
-
-        downloadBtn.onclick = () => {
-            const a = document.createElement('a');
-            a.href = modelUrl;
-            a.download = 'model.obj';
-            a.click();
-        };
+        generateBtn.disabled = false;
 
     } catch (e) {
-        console.error(e);
-        alert("Hata oluştu, konsolu (F12) kontrol edin: " + e.message);
+        console.error("HATA:", e);
+        alert("Bir hata oluştu: " + e.message);
         generateBtn.innerText = "🧠 3D Model Oluştur";
         generateBtn.disabled = false;
     }
