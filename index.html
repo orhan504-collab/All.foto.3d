@@ -11,15 +11,15 @@
     <div class="container">
         <header>
             <h1>AI 3D Builder</h1>
-            <p>Fotoğraftan 3D STL Modeline</p>
+            <p>Fotoğraftan 3D Modele</p>
         </header>
 
         <main>
             <div class="card" id="upload-card">
                 <div class="drop-zone" id="drop-zone">
                     <div class="icon">📸</div>
-                    <p>Fotoğrafı sürükleyin veya tıklayın</p>
-                    <input type="file" id="fileInput" accept="image/*" hidden>
+                    <p>Fotoğrafı seçmek için buraya tıkla</p>
+                    <input type="file" id="fileInput" accept="image/*">
                 </div>
                 <div id="preview-container" class="hidden">
                     <img id="imgPreview" src="" alt="Önizleme">
@@ -28,23 +28,14 @@
             </div>
 
             <div class="card" id="viewer-card">
-                <model-viewer id="modelViewer" 
-                    camera-controls 
-                    auto-rotate 
-                    shadow-intensity="1" 
-                    exposure="1"
-                    environment-image="neutral"
-                    alt="Oluşturulan 3D Model">
-                    <div class="placeholder-text" slot="poster">Model burada görünecek...</div>
+                <model-viewer id="modelViewer" camera-controls auto-rotate shadow-intensity="1" alt="3D Model">
                 </model-viewer>
-                
                 <div class="controls">
                     <button id="downloadBtn" class="btn-secondary" disabled>⬇ STL İndir</button>
                 </div>
             </div>
         </main>
     </div>
-
     <script src="app.js"></script>
 </body>
 </html>
