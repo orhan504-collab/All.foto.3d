@@ -1,26 +1,30 @@
-name: Deploy AI 3D Studio to GitHub Pages
+name: Deploy to GitHub Pages
 
 on:
   push:
-    branches:
-      - main  # Ana dalda her push yapıldığında tetiklenir
+    branches: ["main"]
 
-# 1. GitHub botuna dosyaları yazma yetkisi veriyoruz
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
 
 jobs:
-  build-and-deploy:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      # 2. Kodları repodan çek
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
-
-      # 3. Projeyi GitHub Pages'e dağıt
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./ # Projenin ana dizinini yayınlar
-          
+          path: '.'
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+        
